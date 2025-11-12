@@ -1,0 +1,85 @@
+
+<% layout('layout', { title: 'Admin' }) %>
+<section class="card">
+  <div class="admin-header">
+    <h1>Admin Panel</h1>
+    <form method="post" action="/admin/logout"><button class="linklike">Log out</button></form>
+  </div>
+  <h2>Credentials</h2>
+  <form method="post" action="/admin/creds" class="form">
+    <div class="row">
+      <label>Username <input type="text" name="username" value="<%= adminUser %>" required></label>
+      <label>New Password <input type="password" name="password" placeholder="Enter new password" required></label>
+    </div>
+    <button type="submit">Update Credentials</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Create Auction</h2>
+  <form method="post" action="/admin/auction" class="form">
+    <div class="row">
+      <label>Title <input type="text" name="title" required></label>
+      <label>Slug (optional) <input type="text" name="slug" placeholder="e.g., rare-sneakers"></label>
+    </div>
+    <label>Description <textarea name="description" rows="4" placeholder="Info shown below the bid button"></textarea></label>
+    <div class="row">
+      <label>Start (local) <input type="datetime-local" name="startsAtLocal" required></label>
+      <label>Duration (minutes) <input type="number" name="durationMinutes" min="1" value="60" required></label>
+    </div>
+    <div class="row">
+      <label>Starting Bid ($) <input type="number" step="0.01" min="0" name="startingBid" value="10.00" required></label>
+      <label>Min Increment ($) <input type="number" step="0.01" min="0.01" name="minIncrement" value="1.00" required></label>
+      <label>Max Increment ($, 0 = none) <input type="number" step="0.01" min="0" name="maxIncrement" value="0"></label>
+    </div>
+    <button type="submit">Create Auction</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Manage Auctions</h2>
+  <% if (!auctions.length) { %>
+    <p>No auctions created yet.</p>
+  <% } else { %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th><th>Slug</th><th>Schedule</th><th>Bid</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% auctions.forEach(a => { %>
+        <tr>
+          <td><%= a.title %></td>
+          <td><a href="/<%= a.slug %>" target="_blank">/<%= a.slug %></a></td>
+          <td><div>Start: <%= dayjs(a.startsAt).format('YYYY-MM-DD HH:mm') %></div>
+              <div>End: <%= dayjs(a.endsAt).format('YYYY-MM-DD HH:mm') %></div></td>
+          <td>$<%= a.currentBid.toFixed(2) %> (start $<%= a.startingBid.toFixed(2) %>)</td>
+          <td>
+            <details>
+              <summary>Edit</summary>
+              <form method="post" action="/admin/auction/<%= a.id %>/update" class="form small">
+                <label>Title <input type="text" name="title" value="<%= a.title %>"></label>
+                <label>Description <textarea name="description" rows="3"><%= a.description || '' %></textarea></label>
+                <div class="row">
+                  <label>Start (local) <input type="datetime-local" name="startsAtLocal" value="<%= dayjs(a.startsAt).format('YYYY-MM-DDTHH:mm') %>"></label>
+                  <label>Duration (minutes) <input type="number" name="durationMinutes" min="1" value="<%= Math.max(1, Math.round((new Date(a.endsAt) - new Date(a.startsAt))/60000)) %>"></label>
+                </div>
+                <div class="row">
+                  <label>Starting Bid ($) <input type="number" name="startingBid" step="0.01" value="<%= a.startingBid.toFixed(2) %>"></label>
+                  <label>Min Increment ($) <input type="number" name="minIncrement" step="0.01" value="<%= a.minIncrement.toFixed(2) %>"></label>
+                  <label>Max Increment ($) <input type="number" name="maxIncrement" step="0.01" value="<%= a.maxIncrement ? a.maxIncrement.toFixed(2) : 0 %>"></label>
+                </div>
+                <button type="submit">Save</button>
+              </form>
+            </details>
+            <form method="post" action="/admin/auction/<%= a.id %>/delete" onsubmit="return confirm('Delete this auction?');">
+              <button class="danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>

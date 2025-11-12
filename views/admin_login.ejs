@@ -1,0 +1,11 @@
+
+<% layout('layout', { title: 'Admin Login' }) %>
+<section class="card narrow">
+  <h1>Admin Login</h1>
+  <% if (error) { %><div class="msg error"><%= error %></div><% } %>
+  <form method="post" action="/admin/login" class="form">
+    <label>Username <input type="text" name="username" required></label>
+    <label>Password <input type="password" name="password" required></label>
+    <button type="submit">Log In</button>
+  </form>
+</section>

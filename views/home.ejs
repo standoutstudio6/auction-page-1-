@@ -1,0 +1,21 @@
+
+<% layout('layout', { title: 'Auctions' }) %>
+<section class="card">
+  <h1>Auctions</h1>
+  <% if (!auctions.length) { %>
+    <p>No auctions yet. An admin can create one at <a href="/admin">/admin</a>.</p>
+  <% } else { %>
+    <ul class="list">
+      <% auctions.forEach(a => { %>
+        <li class="list-item">
+          <a class="auction-link" href="/<%= a.slug %>"><%= a.title %></a>
+          <div class="meta">
+            <span>Starts: <%= dayjs(a.startsAt).format('YYYY-MM-DD HH:mm') %></span>
+            <span>Ends: <%= dayjs(a.endsAt).format('YYYY-MM-DD HH:mm') %></span>
+            <span>Current bid: $<%= a.currentBid.toFixed(2) %></span>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>

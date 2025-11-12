@@ -1,0 +1,27 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title : 'Auctions' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="dark">
+  <header class="topbar">
+    <div class="container">
+      <a href="/" class="brand">Auctions</a>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/admin">Admin</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <%- body %>
+  </main>
+  <footer class="footer container">
+    <p>&copy; <%= new Date().getFullYear() %> Auctions demo</p>
+  </footer>
+</body>
+</html>

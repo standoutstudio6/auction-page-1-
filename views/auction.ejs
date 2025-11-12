@@ -1,0 +1,115 @@
+
+<% layout('layout', { title: auction.title }) %>
+<section class="auction-hero">
+  <h1><%= auction.title %></h1>
+  <div class="timer" id="timer"></div>
+</section>
+
+<section class="card centered">
+  <h2>Current Bid</h2>
+  <div id="currentBid" class="current-bid">$<%= auction.currentBid.toFixed(2) %></div>
+  <form id="bidForm" class="bid-form">
+    <input type="number" step="0.01" min="0" name="amount" id="amount" placeholder="Enter your bid" required>
+    <button type="submit" id="bidBtn">Place Bid</button>
+    <div id="msg" class="msg"></div>
+  </form>
+  <div class="bid-rules">
+    <p>Starting bid: $<%= auction.startingBid.toFixed(2) %></p>
+    <p>Min increment: $<%= auction.minIncrement.toFixed(2) %></p>
+    <p>Max increment: <%= auction.maxIncrement ? ('$' + auction.maxIncrement.toFixed(2)) : 'No max' %></p>
+  </div>
+</section>
+
+<section class="card">
+  <h3>About this item</h3>
+  <p><%= auction.description ? auction.description.replace(/\n/g, '<br>') : 'No description provided.' %></p>
+</section>
+
+<script>
+const slug = "<%= auction.slug %>";
+const startsAt = new Date("<%= auction.startsAt %>");
+const endsAt = new Date("<%= auction.endsAt %>");
+const currentBidEl = document.getElementById('currentBid');
+const msgEl = document.getElementById('msg');
+const bidForm = document.getElementById('bidForm');
+const bidBtn = document.getElementById('bidBtn');
+const timerEl = document.getElementById('timer');
+
+function updateTimer() {
+  const now = new Date();
+  let label = '';
+  let diff = 0;
+  if (now < startsAt) {
+    label = 'Starts in';
+    diff = startsAt - now;
+  } else if (now >= startsAt && now < endsAt) {
+    label = 'Ends in';
+    diff = endsAt - now;
+  } else {
+    label = 'Auction ended';
+    diff = 0;
+  }
+  if (diff <= 0) {
+    timerEl.textContent = label;
+    return;
+  }
+  const s = Math.floor(diff / 1000) % 60;
+  const m = Math.floor(diff / (1000*60)) % 60;
+  const h = Math.floor(diff / (1000*60*60));
+  timerEl.textContent = label + ': ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function checkActive() {
+  const now = new Date();
+  if (now < startsAt) {
+    bidBtn.disabled = true;
+    bidBtn.textContent = 'Not started';
+  } else if (now >= endsAt) {
+    bidBtn.disabled = true;
+    bidBtn.textContent = 'Ended';
+  } else {
+    bidBtn.disabled = false;
+    bidBtn.textContent = 'Place Bid';
+  }
+}
+
+async function poll() {
+  try {
+    const res = await fetch('/' + slug + '/status');
+    const data = await res.json();
+    if (data.ok) {
+      currentBidEl.textContent = '$' + Number(data.currentBid).toFixed(2);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+bidForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msgEl.textContent = '';
+  const form = new FormData(bidForm);
+  const amount = form.get('amount');
+  try {
+    const res = await fetch('/' + slug + '/bid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount })
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      msgEl.textContent = data.error || 'Bid failed';
+    } else {
+      currentBidEl.textContent = '$' + Number(data.currentBid).toFixed(2);
+      msgEl.textContent = 'Bid placed!';
+      (document.getElementById('amount') || {}).value = '';
+    }
+  } catch (err) {
+    msgEl.textContent = 'Network error';
+  }
+});
+
+setInterval(updateTimer, 1000);
+setInterval(poll, 3000);
+setInterval(checkActive, 1000);
+updateTimer();
+checkActive();
+</script>

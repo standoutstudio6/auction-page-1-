@@ -1,0 +1,7 @@
+
+<% layout('layout', { title: 'Not Found' }) %>
+<section class="card">
+  <h1>Not Found</h1>
+  <p>We couldn't find that page<% if (slug) { %> (<code>/<%= slug %></code>)<% } %>.</p>
+  <p><a href="/">Go home</a></p>
+</section>
